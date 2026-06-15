@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import ActionItemsPanel from '@/components/ActionItemsPanel';
 import SettingsModal from '@/components/SettingsModal';
+import AudioRecorder from '@/components/AudioRecorder';
 import type { ActionItem } from '@/lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, Zap, ClipboardList, PenLine, Key, Loader2, AlertCircle, ArrowRight } from 'lucide-react';
@@ -24,6 +25,8 @@ export default function HomePage() {
   const [showSettings, setShowSettings] = useState(false);
   const [hasApiKey, setHasApiKey] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  const [isAutoProcess, setIsAutoProcess] = useState(false);
+  const [lastProcessedLength, setLastProcessedLength] = useState(0);
 
   useEffect(() => {
     if (session?.access_token) {
@@ -35,6 +38,25 @@ export default function HomePage() {
         .catch(() => { });
     }
   }, [session]);
+
+  // Auto-summarize logic
+  useEffect(() => {
+    if (!isAutoProcess || processing || !transcript.trim() || !hasApiKey) return;
+
+    const currentLength = transcript.length;
+    // Trigger if transcript has grown significantly (e.g., ~200 characters)
+    if (currentLength - lastProcessedLength > 200) {
+      handleProcess();
+      setLastProcessedLength(currentLength);
+    }
+  }, [transcript, isAutoProcess, processing, hasApiKey, lastProcessedLength]);
+
+  const handleTranscriptUpdate = (newText: string) => {
+    setTranscript((prev) => {
+      const separator = prev && !prev.endsWith(' ') ? ' ' : '';
+      return prev + separator + newText;
+    });
+  };
 
   const handleProcess = async () => {
     if (!transcript.trim() || !session?.access_token) return;
@@ -217,6 +239,15 @@ export default function HomePage() {
                 </div>
                 <h2 className="text-xl font-bold">เริ่มสรุปประชุม</h2>
               </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-zinc-500 font-medium">สรุปอัตโนมัติ</span>
+                <button
+                  onClick={() => setIsAutoProcess(!isAutoProcess)}
+                  className={`w-10 h-5 rounded-full relative transition-colors ${isAutoProcess ? 'bg-indigo-500' : 'bg-zinc-700'}`}
+                >
+                  <div className={`absolute top-1 w-3 h-3 rounded-full bg-white transition-all ${isAutoProcess ? 'left-6' : 'left-1'}`} />
+                </button>
+              </div>
             </div>
 
             <textarea
@@ -232,13 +263,17 @@ export default function HomePage() {
                 <span>พร้อมประมวลผลภาษาไทย/อังกฤษ</span>
               </div>
               <div className="flex items-center gap-3 w-full sm:w-auto">
+                <AudioRecorder
+                  onTranscriptUpdate={handleTranscriptUpdate}
+                  isProcessing={processing}
+                />
                 {transcript && (
-                  <button onClick={() => setTranscript('')} className="btn-secondary flex-1 sm:flex-none">ล้างข้อมูล</button>
+                  <button onClick={() => setTranscript('')} className="btn-secondary !py-3 flex-1 sm:flex-none">ล้างข้อมูล</button>
                 )}
                 <button
                   onClick={handleProcess}
                   disabled={processing || !transcript.trim() || !hasApiKey}
-                  className="btn-primary flex-1 sm:flex-none flex items-center justify-center gap-2 disabled:opacity-50 disabled:grayscale transition-all"
+                  className="btn-primary !py-3 flex-1 sm:flex-none flex items-center justify-center gap-2 disabled:opacity-50 disabled:grayscale transition-all"
                 >
                   {processing ? (
                     <><Loader2 className="w-5 h-5 animate-spin" /> กำลังประมวลผล...</>
