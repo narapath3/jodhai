@@ -2,7 +2,7 @@
 
 import type { ActionItem } from '@/lib/supabase';
 import { motion } from 'framer-motion';
-import { Copy, Check, User, Calendar, Flag, ListTodo } from 'lucide-react';
+import { Copy, Check, User, Calendar, MessageSquare } from 'lucide-react';
 import { useState } from 'react';
 
 export default function ActionItemsPanel({
@@ -13,24 +13,26 @@ export default function ActionItemsPanel({
 }: {
     items: ActionItem[];
     summary: string;
-    title: string;
+    title?: string;
     onCopy: () => void;
 }) {
+    const [checkedItems, setCheckedItems] = useState<Record<number, boolean>>({});
     const [copied, setCopied] = useState(false);
-    const priorityOrder = { high: 0, medium: 1, low: 2 };
-    const sorted = [...items].sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
+
+    const toggleCheck = (index: number) => {
+        setCheckedItems(prev => ({ ...prev, [index]: !prev[index] }));
+    };
 
     const formatCopyText = () => {
-        let text = `📋 ${title}\n\n`;
+        let text = `📋 ${title || 'สรุปประชุม'}\n\n`;
         text += `📝 สรุป: ${summary}\n\n`;
         text += `✅ Action Items:\n`;
-        sorted.forEach((item, i) => {
+        items.forEach((item, i) => {
             text += `\n${i + 1}. ${item.task}`;
             if (item.assignee) text += `\n   👤 ผู้รับผิดชอบ: ${item.assignee}`;
             if (item.deadline) text += `\n   📅 กำหนด: ${item.deadline}`;
-            text += `\n   🔔 ความสำคัญ: ${item.priority === 'high' ? 'สูง' : item.priority === 'medium' ? 'ปานกลาง' : 'ต่ำ'}`;
+            text += `\n   🔵 ความสำคัญ: ${item.priority}`;
         });
-        text += `\n\n— สรุปโดย จดให้ (Meeting-to-Action)`;
         return text;
     };
 
@@ -41,87 +43,81 @@ export default function ActionItemsPanel({
         setTimeout(() => setCopied(false), 2000);
     };
 
-    return (
-        <div className="space-y-6">
-            {/* Header Card */}
-            <div className="glass-card p-6 border-indigo-500/20 bg-indigo-500/5">
-                <div className="flex items-start justify-between gap-4 mb-4">
-                    <div className="flex-1">
-                        <h2 className="text-2xl font-bold accent-text mb-2">{title}</h2>
-                        <p className="text-zinc-400 text-sm leading-relaxed">{summary}</p>
-                    </div>
-                    <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={handleCopy}
-                        className="btn-secondary !p-3 flex items-center justify-center shrink-0"
-                    >
-                        {copied ? <Check className="w-5 h-5 text-emerald-500" /> : <Copy className="w-5 h-5" />}
-                    </motion.button>
-                </div>
+    const prioChip = (p: string) => {
+        const map: Record<string, { cls: string, label: string }> = {
+            high: { cls: 'chip-prio-high', label: '🔴 High' },
+            medium: { cls: 'chip-prio-med', label: '🟡 Medium' },
+            low: { cls: 'chip-prio-low', label: '🟢 Low' }
+        };
+        const { cls, label } = map[p.toLowerCase()] || map.low;
+        return <span className={`chip ${cls}`}>{label}</span>;
+    };
 
-                <div className="flex items-center gap-6 pt-2">
-                    <div className="flex items-center gap-2">
-                        <ListTodo className="w-4 h-4 text-zinc-500" />
-                        <span className="text-xs font-bold text-zinc-300">{items.length} งาน</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <Flag className="w-4 h-4 text-red-500" />
-                        <span className="text-xs font-bold text-zinc-300">{items.filter(i => i.priority === 'high').length} สำคัญสูง</span>
-                    </div>
+    const doneCount = Object.values(checkedItems).filter(Boolean).length;
+
+    return (
+        <div className="space-y-4">
+            {/* Stats Bar */}
+            <div className="flex gap-4 p-[10px_14px] bg-bg-tertiary rounded-[8px] flex-wrap">
+                <div className="text-[12px] text-text-secondary flex items-center gap-[5px]">
+                    📋 Action items: <strong className="text-text-primary">{items.length}</strong>
                 </div>
+                <div className="text-[12px] text-text-secondary flex items-center gap-[5px]">
+                    ✅ เสร็จแล้ว: <strong className="text-text-primary">{doneCount}</strong>
+                </div>
+                {title && (
+                    <div className="text-[12px] text-text-secondary flex items-center gap-[5px]">
+                        🎯 หัวข้อ: <strong className="text-text-primary">{title}</strong>
+                    </div>
+                )}
             </div>
 
             {/* List */}
-            <div className="space-y-3">
-                {sorted.map((item, index) => (
-                    <motion.div
-                        key={item.id || index}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: index * 0.05 }}
-                        className={`glass-card p-5 group relative overflow-hidden ${item.priority === 'high' ? 'border-red-500/10' : ''
-                            }`}
-                    >
-                        {item.priority === 'high' && (
-                            <div className="absolute top-0 left-0 w-1 h-full bg-red-500/50" />
-                        )}
-
-                        <div className="flex items-start gap-4">
-                            <div className="flex-1">
-                                <div className="flex items-center gap-2 mb-2">
-                                    <span className={`text-[10px] uppercase tracking-widest font-bold px-2 py-0.5 rounded border ${item.priority === 'high' ? 'text-red-400 border-red-500/30 bg-red-500/5' :
-                                            item.priority === 'medium' ? 'text-yellow-400 border-yellow-500/30 bg-yellow-500/5' :
-                                                'text-emerald-400 border-emerald-500/30 bg-emerald-500/5'
-                                        }`}>
-                                        {item.priority}
-                                    </span>
-                                </div>
-
-                                <h4 className="text-[var(--color-text-primary)] font-semibold leading-relaxed">
+            <div className="flex flex-col gap-2">
+                {items.map((item, i) => {
+                    const isDone = checkedItems[i];
+                    return (
+                        <div
+                            key={i}
+                            className={`flex items-start gap-3 p-[12px_14px] bg-bg-tertiary border border-border rounded-[8px] transition-all ${isDone ? 'opacity-50' : 'hover:border-[#3A4560]'}`}
+                        >
+                            <div
+                                onClick={() => toggleCheck(i)}
+                                className={`check-circle ${isDone ? 'checked' : ''}`}
+                            />
+                            <div className="flex-1 min-w-0">
+                                <div className={`text-[14px] leading-[1.5] text-text-primary mb-1.5 font-thai ${isDone ? 'line-through text-text-muted' : ''}`}>
                                     {item.task}
-                                </h4>
-
-                                {(item.assignee || item.deadline) && (
-                                    <div className="flex flex-wrap items-center gap-4 mt-3">
-                                        {item.assignee && (
-                                            <div className="flex items-center gap-1.5 text-xs text-zinc-400 bg-white/5 px-2 py-1 rounded-md">
-                                                <User className="w-3 h-3 text-indigo-400" />
-                                                {item.assignee}
-                                            </div>
-                                        )}
-                                        {item.deadline && (
-                                            <div className="flex items-center gap-1.5 text-xs text-zinc-400 bg-white/5 px-2 py-1 rounded-md">
-                                                <Calendar className="w-3 h-3 text-indigo-400" />
-                                                {item.deadline}
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
+                                </div>
+                                <div className="flex gap-[5px] flex-wrap">
+                                    {item.assignee && (
+                                        <span className="chip chip-owner">👤 {item.assignee}</span>
+                                    )}
+                                    {item.deadline && (
+                                        <span className="chip chip-due">📅 {item.deadline}</span>
+                                    )}
+                                    {prioChip(item.priority)}
+                                    {item.notes && (
+                                        <span className="chip bg-bg-primary text-text-muted border border-border">
+                                            <MessageSquare className="w-2.5 h-2.5" /> {item.notes}
+                                        </span>
+                                    )}
+                                </div>
                             </div>
                         </div>
-                    </motion.div>
-                ))}
+                    );
+                })}
+            </div>
+
+            {/* Export Row */}
+            <div className="flex gap-2 mt-4 flex-wrap">
+                <button
+                    onClick={handleCopy}
+                    className="text-[12px] py-[6px] px-[14px] rounded-[7px] border border-border bg-bg-tertiary text-text-secondary hover:border-accent hover:text-accent transition-all flex items-center gap-[5px]"
+                >
+                    {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                    Copy ทั้งหมด
+                </button>
             </div>
         </div>
     );

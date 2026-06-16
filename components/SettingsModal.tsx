@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Key, Info, CheckCircle2, Loader2, Link as LinkIcon } from 'lucide-react';
+import { X, Key, Info, CheckCircle2, Loader2 } from 'lucide-react';
 
 export default function SettingsModal({
     isOpen,
@@ -39,7 +39,7 @@ export default function SettingsModal({
                 }, 1500);
             }
         } catch {
-            // Error handling not changed for brevity
+            // handle error
         } finally {
             setSaving(false);
         }
@@ -54,66 +54,61 @@ export default function SettingsModal({
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="absolute inset-0 bg-black/80 backdrop-blur-md"
+                    className="absolute inset-0 bg-bg-primary/80 backdrop-blur-sm"
                     onClick={onClose}
                 />
 
                 <motion.div
-                    initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                    initial={{ scale: 0.95, opacity: 0, y: 10 }}
                     animate={{ scale: 1, opacity: 1, y: 0 }}
-                    exit={{ scale: 0.9, opacity: 0, y: 20 }}
-                    className="relative z-10 w-full max-w-md glass-card p-8 shadow-2xl border-white/10 bg-zinc-950"
+                    exit={{ scale: 0.95, opacity: 0, y: 10 }}
+                    className="relative z-10 w-full max-w-[400px] card p-6 shadow-2xl border-border bg-bg-secondary"
                 >
-                    <div className="flex items-center justify-between mb-8">
-                        <div className="flex items-center gap-3">
-                            <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-500">
-                                <Key className="w-6 h-6" />
-                            </div>
-                            <h2 className="text-xl font-bold">ตั้งค่า API Key</h2>
+                    <div className="flex items-center justify-between mb-6">
+                        <div className="flex items-center gap-2">
+                            <Key className="w-5 h-5 text-accent" />
+                            <h2 className="text-[16px] font-bold text-text-primary">ตั้งค่า API Key</h2>
                         </div>
-                        <button onClick={onClose} className="p-2 rounded-full hover:bg-white/5 transition-colors text-zinc-500">
-                            <X className="w-5 h-5" />
+                        <button onClick={onClose} className="p-1.5 rounded-full hover:bg-bg-tertiary transition-colors text-text-muted">
+                            <X className="w-4 h-4" />
                         </button>
                     </div>
 
-                    <div className="space-y-6">
-                        <div>
-                            <label className="block text-sm font-semibold text-zinc-400 mb-3 ml-1">
+                    <div className="space-y-5">
+                        <div className="space-y-2">
+                            <label className="text-[12px] font-semibold text-text-secondary ml-1">
                                 Google Gemini API Key
                             </label>
                             <input
                                 type="password"
-                                className="input-field w-full"
+                                className="w-full bg-bg-tertiary border border-border rounded-[8px] p-[10px_12px] text-[14px] text-text-primary outline-none focus:border-accent transition-all"
                                 placeholder="AIzaSyA..."
                                 value={apiKey}
                                 onChange={(e) => setApiKey(e.target.value)}
                             />
                         </div>
 
-                        <div className="p-4 rounded-2xl bg-indigo-500/5 border border-indigo-500/10 space-y-3">
-                            <div className="flex gap-3">
-                                <Info className="w-5 h-5 text-indigo-400 shrink-0" />
-                                <p className="text-xs text-zinc-400 leading-relaxed">
-                                    คุณสามารถขอ API Key ฟรีได้ที่ <a href="https://aistudio.google.com/apikey" target="_blank" className="text-indigo-400 underline font-semibold">Google AI Studio</a> ซึ่งสามารถใช้งานได้ฟรี 1,500 ครั้งต่อวัน
-                                </p>
-                            </div>
+                        <div className="p-3 bg-bg-tertiary rounded-[8px] border border-border flex gap-3">
+                            <Info className="w-4 h-4 text-accent shrink-0 mt-0.5" />
+                            <p className="text-[11px] text-text-secondary leading-[1.6]">
+                                รับ API Key ฟรีได้ที่ <a href="https://aistudio.google.com/apikey" target="_blank" className="text-accent underline font-semibold">Google AI Studio</a> <br />
+                                (ฟรี 1,500 ครั้ง/วัน สรุปประชุมได้สบายๆ)
+                            </p>
                         </div>
 
-                        <motion.button
-                            whileTap={{ scale: 0.98 }}
+                        <button
                             onClick={handleSave}
                             disabled={saving || !apiKey.trim() || success}
-                            className={`btn-primary w-full flex items-center justify-center gap-2 h-14 ${success ? '!bg-emerald-500 !shadow-emerald-500/20' : ''
-                                }`}
+                            className={`w-full h-11 rounded-[8px] font-bold text-[14px] transition-all flex items-center justify-center gap-2 ${success ? 'bg-accent-green text-bg-primary' : 'btn-run'} disabled:opacity-40`}
                         >
                             {saving ? (
-                                <Loader2 className="w-5 h-5 animate-spin" />
+                                <Loader2 className="w-4 h-4 animate-spin-custom" />
                             ) : success ? (
-                                <><CheckCircle2 className="w-5 h-5" /> บันทึกสำเร็จ</>
+                                <><CheckCircle2 className="w-4 h-4" /> บันทึกสำเร็จ</>
                             ) : (
-                                'บันทึก API Key'
+                                'บันทึกการตั้งค่า'
                             )}
-                        </motion.button>
+                        </button>
                     </div>
                 </motion.div>
             </div>

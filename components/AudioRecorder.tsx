@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Mic, Square, MicOff, AlertCircle } from 'lucide-react';
+import { Mic, Square, AlertCircle, Loader2 } from 'lucide-react';
 
 interface AudioRecorderProps {
     onTranscriptUpdate: (text: string) => void;
@@ -14,11 +14,10 @@ export default function AudioRecorder({ onTranscriptUpdate, isProcessing }: Audi
     const recognitionRef = useRef<any>(null);
 
     useEffect(() => {
-        // Check if SpeechRecognition is supported
         const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
 
         if (!SpeechRecognition) {
-            setError('เบราว์เซอร์ของคุณไม่รองรับการบันทึกเสียง (แนะนำให้ใช้ Chrome หรือ Edge)');
+            setError('เบราว์เซอร์ของคุณไม่รองรับการบันทึกเสียง');
             return;
         }
 
@@ -28,17 +27,12 @@ export default function AudioRecorder({ onTranscriptUpdate, isProcessing }: Audi
         recognition.lang = 'th-TH';
 
         recognition.onresult = (event: any) => {
-            let interimTranscript = '';
             let finalTranscript = '';
-
             for (let i = event.resultIndex; i < event.results.length; ++i) {
                 if (event.results[i].isFinal) {
                     finalTranscript += event.results[i][0].transcript;
-                } else {
-                    interimTranscript += event.results[i][0].transcript;
                 }
             }
-
             if (finalTranscript) {
                 onTranscriptUpdate(finalTranscript);
             }
@@ -46,27 +40,18 @@ export default function AudioRecorder({ onTranscriptUpdate, isProcessing }: Audi
 
         recognition.onerror = (event: any) => {
             console.error('Speech recognition error', event.error);
-            if (event.error === 'not-allowed') {
-                setError('ไม่ได้รับอนุญาตให้เข้าถึงไมโครโฟน');
-            } else {
-                setError(`เกิดข้อผิดพลาด: ${event.error}`);
-            }
+            setError(event.error === 'not-allowed' ? 'ไม่ได้รับอนุญาตให้ใช้ไมค์' : `Error: ${event.error}`);
             setIsRecording(false);
         };
 
         recognition.onend = () => {
-            if (isRecording) {
-                // restart if it ended unexpectedly but we still want it on
-                recognition.start();
-            }
+            if (isRecording) recognition.start();
         };
 
         recognitionRef.current = recognition;
 
         return () => {
-            if (recognitionRef.current) {
-                recognitionRef.current.stop();
-            }
+            if (recognitionRef.current) recognitionRef.current.stop();
         };
     }, [isRecording, onTranscriptUpdate]);
 
@@ -80,41 +65,33 @@ export default function AudioRecorder({ onTranscriptUpdate, isProcessing }: Audi
                 recognitionRef.current?.start();
                 setIsRecording(true);
             } catch (err) {
-                console.error('Start error', err);
                 setError('ไม่สามารถเริ่มบันทึกเสียงได้');
             }
         }
     };
 
     return (
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-1">
             <button
                 onClick={toggleRecording}
                 disabled={isProcessing || (!!error && !recognitionRef.current)}
-                className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all ${isRecording
-                        ? 'bg-red-500/10 text-red-500 border border-red-500/20 animate-pulse'
-                        : 'bg-indigo-500/10 text-indigo-500 border border-indigo-500/20 hover:bg-indigo-500/20'
+                className={`inline-flex items-center gap-2 text-[12px] font-semibold py-[6px] px-[12px] rounded-[7px] border transition-all ${isRecording
+                    ? 'bg-red-500/10 text-red-400 border-red-500/30 font-bold animate-pulse'
+                    : 'bg-bg-tertiary text-text-secondary border-border hover:border-accent hover:text-accent'
                     }`}
             >
                 {isRecording ? (
                     <>
-                        <Square className="w-5 h-5 fill-current" />
-                        หยุดบันทึกเสียง
+                        <Square className="w-3.5 h-3.5 fill-current" />
+                        หยุดอัด
                     </>
                 ) : (
                     <>
-                        <Mic className="w-5 h-5" />
-                        เริ่มบันทึกเสียง
+                        <Mic className="w-3.5 h-3.5" />
+                        {error ? 'ลองอีกครั้ง' : 'อัดเสียงโดยตรง'}
                     </>
                 )}
             </button>
-
-            {error && !isRecording && (
-                <div className="flex items-center gap-2 text-xs text-red-400 mt-1">
-                    <AlertCircle className="w-3 h-3" />
-                    <span>{error}</span>
-                </div>
-            )}
         </div>
     );
 }

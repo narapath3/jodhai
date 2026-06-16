@@ -42,116 +42,99 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="flex flex-col items-center justify-center min-h-[85vh] px-4 relative">
-            <Link href="/" className="absolute top-8 left-8 p-2 rounded-full hover:bg-white/5 text-zinc-500 transition-colors hidden sm:flex items-center gap-2 text-sm font-medium">
+        <div className="flex flex-col items-center justify-center min-h-[80vh] px-4 relative">
+            <Link href="/" className="absolute top-8 left-8 p-2 rounded-full hover:bg-bg-secondary text-text-muted transition-colors hidden sm:flex items-center gap-2 text-[12px] font-semibold uppercase tracking-widest">
                 <ArrowLeft className="w-4 h-4" /> กลับหน้าหลัก
             </Link>
 
             <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="w-full max-w-md"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="w-full max-w-[400px]"
             >
-                {/* Logo Card */}
-                <div className="text-center mb-10">
-                    <motion.div
-                        whileHover={{ rotate: 10, scale: 1.1 }}
-                        className="w-20 h-20 rounded-3xl flex items-center justify-center text-3xl font-bold text-white mx-auto mb-6 shadow-2xl shadow-indigo-500/20"
-                        style={{ background: 'linear-gradient(135deg, var(--color-accent-start), var(--color-accent-end))' }}>
-                        จ
-                    </motion.div>
-                    <h1 className="text-3xl font-extrabold tracking-tight text-white mb-2">
+                {/* Logo Section */}
+                <div className="text-center mb-8">
+                    <div className="logo inline-flex items-center gap-2 text-[14px] font-heavy tracking-[.06em] uppercase text-accent mb-[12px]">
+                        <div className="logo-dot" /> Meeting-to-Action
+                    </div>
+                    <h1 className="text-[26px] font-semibold tracking-[-.3px] mb-[6px] text-text-primary">
                         {isSignUp ? 'สร้างบัญชีผู้ใช้' : 'ยินดีต้อนรับกลับ'}
                     </h1>
-                    <p className="text-zinc-500 font-medium tracking-tight">
-                        {isSignUp ? 'เริ่มเปลี่ยนการประชุมให้เป็น Action Items ทันที' : 'เข้าสู่ระบบเพื่อจัดการประชุมของคุณต่อ'}
+                    <p className="text-sm text-text-secondary">
+                        {isSignUp ? 'เริ่มสรุปการประชุมให้เป็น Action Items ทันที' : 'เข้าสู่ระบบเพื่อจัดการประชุมของคุณต่อ'}
                     </p>
                 </div>
 
-                {/* Login Form */}
-                <div className="glass-card p-8 shadow-2xl relative overflow-hidden">
-                    <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
+                {/* Form Card */}
+                <div className="card p-6 shadow-2xl overflow-hidden">
+                    <form onSubmit={handleSubmit} className="space-y-5">
                         <div className="space-y-2">
-                            <label className="block text-sm font-bold text-zinc-400 ml-1">อีเมล</label>
-                            <div className="relative group">
-                                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500 group-focus-within:text-indigo-400 transition-colors" />
-                                <input
-                                    type="email"
-                                    className="input-field w-full !pl-12"
-                                    placeholder="name@company.com"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    required
-                                />
-                            </div>
+                            <label className="text-[12px] font-semibold text-text-secondary ml-1">อีเมล</label>
+                            <input
+                                type="email"
+                                className="w-full bg-bg-tertiary border border-border rounded-[8px] p-[10px_12px] text-[14px] text-text-primary outline-none focus:border-accent transition-all"
+                                placeholder="name@company.com"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                required
+                            />
                         </div>
 
                         <div className="space-y-2">
                             <div className="flex justify-between items-center ml-1">
-                                <label className="block text-sm font-bold text-zinc-400">รหัสผ่าน</label>
+                                <label className="text-[12px] font-semibold text-text-secondary">รหัสผ่าน</label>
                                 {!isSignUp && (
-                                    <button type="button" className="text-xs text-indigo-400 hover:text-indigo-300 font-bold transition-colors">
+                                    <button type="button" className="text-[11px] text-accent hover:underline font-semibold">
                                         ลืมรหัสผ่าน?
                                     </button>
                                 )}
                             </div>
-                            <div className="relative group">
-                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500 group-focus-within:text-indigo-400 transition-colors" />
-                                <input
-                                    type="password"
-                                    className="input-field w-full !pl-12"
-                                    placeholder="••••••••"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    required
-                                    minLength={6}
-                                />
-                            </div>
+                            <input
+                                type="password"
+                                className="w-full bg-bg-tertiary border border-border rounded-[8px] p-[10px_12px] text-[14px] text-text-primary outline-none focus:border-accent transition-all"
+                                placeholder="••••••••"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                required
+                                minLength={6}
+                            />
                         </div>
 
                         <AnimatePresence>
-                            {error && (
+                            {(error || success) && (
                                 <motion.div
-                                    initial={{ opacity: 0, y: -10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-medium"
+                                    initial={{ opacity: 0, height: 0 }}
+                                    animate={{ opacity: 1, height: 'auto' }}
+                                    className={`p-3 rounded-[8px] text-[12px] font-medium border ${error
+                                            ? 'bg-danger/10 border-danger/20 text-danger'
+                                            : 'bg-accent-green/10 border-accent-green/20 text-accent-green'
+                                        }`}
                                 >
-                                    {error}
-                                </motion.div>
-                            )}
-                            {success && (
-                                <motion.div
-                                    initial={{ opacity: 0, y: -10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm font-medium"
-                                >
-                                    {success}
+                                    {error || success}
                                 </motion.div>
                             )}
                         </AnimatePresence>
 
-                        <motion.button
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
+                        <button
                             type="submit"
                             disabled={loading}
-                            className="btn-primary w-full flex items-center justify-center gap-2 h-14 text-base"
+                            className="btn-run w-full flex items-center justify-center gap-2 h-11 text-[14px] font-bold"
                         >
                             {loading ? (
-                                <Loader2 className="w-5 h-5 animate-spin" />
+                                <Loader2 className="w-4 h-4 animate-spin-custom" />
                             ) : (
                                 <>
                                     {isSignUp ? 'สร้างบัญชีฟรี' : 'เข้าสู่ระบบ'}
-                                    <ChevronRight className="w-5 h-5" />
+                                    <ChevronRight className="w-4 h-4" />
                                 </>
                             )}
-                        </motion.button>
+                        </button>
 
-                        <div className="text-center pt-4">
+                        <div className="text-center pt-2">
                             <button
                                 type="button"
                                 onClick={() => { setIsSignUp(!isSignUp); setError(''); setSuccess(''); }}
-                                className="text-sm font-bold text-zinc-500 hover:text-white transition-all flex items-center justify-center gap-2 mx-auto"
+                                className="text-[12px] font-semibold text-text-muted hover:text-text-primary transition-all"
                             >
                                 {isSignUp ? 'มีบัญชีอยู่แล้ว? เข้าสู่ระบบ' : 'ยังไม่มีบัญชี? สมัครสมาชิก'}
                             </button>

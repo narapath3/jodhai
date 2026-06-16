@@ -28,4 +28,5 @@ export type ActionItem = {
   deadline: string | null;
   priority: 'high' | 'medium' | 'low';
   completed: boolean;
+  notes?: string | null;
 };
